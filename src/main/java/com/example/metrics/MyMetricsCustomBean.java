@@ -5,6 +5,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.MultiGauge;
 import io.micrometer.core.instrument.Tags;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +26,8 @@ public class MyMetricsCustomBean {
         return certificateController.fetchCount();
     }
 
+    // metrics with name and date certificates
+    @Bean
     public void updateCertificatesData() {
         multiGauge.register(
                 certificateController.getCertificates().stream()
@@ -32,7 +35,9 @@ public class MyMetricsCustomBean {
                          cert -> MultiGauge.Row.of(
                                 Tags.of(
                                         "name", cert.getIssuerDN().getName(),
-                                        "start.date", cert.getNotAfter().toString()
+                                        "validity.time.days",
+                                        // different days
+                                        String.valueOf((cert.getNotAfter().getTime() - cert.getNotBefore().getTime()) / (24 * 60 * 60 * 1000))
                                 ), 1
                         )
                 )
